@@ -53,8 +53,8 @@ const P=[
 (async()=>{
   const grid=document.getElementById('grid'),status=document.getElementById('status'),msg=document.getElementById('msg'),bottom=document.getElementById('bottom'),go=document.getElementById('go');
   let raw='';
-  for(const name of ['sprite.txt','sprite2.txt','sprite3.txt']){
-    const response=await fetch(name+'?v=20260825b',{cache:'no-store'});
+  for(const name of ['product_sprite_1.txt','product_sprite_2.txt','product_sprite_3.txt']){
+    const response=await fetch(name+'?v=20260825c',{cache:'no-store'});
     if(!response.ok) throw new Error('Unable to load '+name+' ('+response.status+')');
     raw += await response.text();
   }
