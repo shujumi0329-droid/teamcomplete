@@ -28,5 +28,8 @@ export async function collectorPost(payload) {
 }
 
 export function json(res, status, body) {
-  res.status(status).setHeader('content-type', 'application/json; charset=utf-8').setHeader('cache-control', 'no-store').json(body);
+  res.status(status);
+  res.setHeader('content-type', 'application/json; charset=utf-8');
+  res.setHeader('cache-control', 'no-store');
+  return res.json(body);
 }
