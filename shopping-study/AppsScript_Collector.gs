@@ -2,8 +2,7 @@ const SPREADSHEET_ID = "14v9kmeFBi6a4LKppgzqsfd3EPAXZWUHG2J923fQiIKk";
 const EVENT_SHEET = "Event_Log";
 const PARTICIPANT_SHEET = "Participants";
 const SETUP_SHEET = "Setup";
-const ADMIN_PASSWORD = "nsysu0825";
-const STUDY_VERSION = "shopping-v5-2026-08-25";
+const STUDY_VERSION = "shopping-v6-vercel-2026-08-25";
 
 function doGet(e) {
   const action = String((e && e.parameter && e.parameter.action) || "health");
@@ -65,7 +64,8 @@ function doPost(e) {
 }
 
 function handleAdminSetSurvey_(ss, data) {
-  if (String(data.password || "") !== ADMIN_PASSWORD) {
+  const adminPassword = PropertiesService.getScriptProperties().getProperty("ADMIN_PASSWORD") || "";
+  if (!adminPassword || String(data.password || "") !== adminPassword) {
     return json_({ok:false,error:"Invalid admin password"});
   }
   let url = String(data.survey_url || "").trim();
