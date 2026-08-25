@@ -1,9 +1,32 @@
 const SPREADSHEET_ID = "14v9kmeFBi6a4LKppgzqsfd3EPAXZWUHG2J923fQiIKk";
 const EVENT_SHEET = "Event_Log";
 const PARTICIPANT_SHEET = "Participants";
+const SETUP_SHEET = "Setup";
+const ADMIN_PASSWORD = "nsysu0825";
+const STUDY_VERSION = "shopping-v4-2026-08-25";
 
-function doGet() {
-  return ContentService.createTextOutput(JSON.stringify({ok:true, service:"shopping-study-collector"}))
+function doGet(e) {
+  const action = String((e && e.parameter && e.parameter.action) || "health");
+  const callback = String((e && e.parameter && e.parameter.callback) || "");
+  let out;
+
+  if (action === "config") {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    out = {
+      ok: true,
+      survey_url: getSetting_(ss, "survey_url") || "",
+      study_version: STUDY_VERSION,
+      required_count: 7
+    };
+  } else {
+    out = {ok:true, service:"shopping-study-collector", study_version:STUDY_VERSION};
+  }
+
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$\.]*$/.test(callback)) {
+    return ContentService.createTextOutput(callback + "(" + JSON.stringify(out) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(JSON.stringify(out))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -12,10 +35,17 @@ function doPost(e) {
   lock.waitLock(10000);
   try {
     const data = JSON.parse((e && e.postData && e.postData.contents) || "{}");
-    if (!data.join_id || !data.event_type) throw new Error("Missing join_id/event_type");
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    if (data.action === "ADMIN_SET_SURVEY") {
+      return handleAdminSetSurvey_(ss, data);
+    }
+
+    if (!data.join_id || !data.event_type) throw new Error("Missing join_id/event_type");
     const ev = ss.getSheetByName(EVENT_SHEET);
     const ps = ss.getSheetByName(PARTICIPANT_SHEET);
+    if (!ev || !ps) throw new Error("Event_Log or Participants sheet is missing");
+
     const now = new Date();
     ev.appendRow([
       now, data.client_time || "", data.event_id || "", data.join_id || "", data.session_id || "",
@@ -25,12 +55,51 @@ function doPost(e) {
       data.referrer || "", data.extra_json || ""
     ]);
     upsertParticipant_(ps, data, now);
-    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+    return json_({ok:true});
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ok:false,error:String(err)})).setMimeType(ContentService.MimeType.JSON);
+    return json_({ok:false,error:String(err)});
   } finally {
     lock.releaseLock();
   }
+}
+
+function handleAdminSetSurvey_(ss, data) {
+  if (String(data.password || "") !== ADMIN_PASSWORD) {
+    return json_({ok:false,error:"Invalid admin password"});
+  }
+  let url = String(data.survey_url || "").trim();
+  if (url && !/^https:\/\//i.test(url)) {
+    return json_({ok:false,error:"Questionnaire URL must begin with https://"});
+  }
+  setSetting_(ss, "survey_url", url);
+  setSetting_(ss, "survey_updated_at", new Date().toISOString());
+  return json_({ok:true,survey_url:url});
+}
+
+function getSetting_(ss, key) {
+  const sh = ss.getSheetByName(SETUP_SHEET);
+  if (!sh) return "";
+  const last = Math.max(1, sh.getLastRow());
+  const values = sh.getRange(1, 4, last, 2).getDisplayValues();
+  for (let i = 0; i < values.length; i++) {
+    if (String(values[i][0]).trim() === key) return String(values[i][1] || "").trim();
+  }
+  return "";
+}
+
+function setSetting_(ss, key, value) {
+  const sh = ss.getSheetByName(SETUP_SHEET);
+  if (!sh) throw new Error("Setup sheet is missing");
+  const last = Math.max(1, sh.getLastRow());
+  const values = sh.getRange(1, 4, last, 1).getDisplayValues();
+  for (let i = 0; i < values.length; i++) {
+    if (String(values[i][0]).trim() === key) {
+      sh.getRange(i + 1, 5).setValue(value);
+      return;
+    }
+  }
+  const row = Math.max(2, last + 1);
+  sh.getRange(row, 4, 1, 2).setValues([[key, value]]);
 }
 
 function upsertParticipant_(sheet, d, now) {
@@ -49,6 +118,7 @@ function upsertParticipant_(sheet, d, now) {
   } else {
     sheet.getRange(row,7).setValue(now);
   }
+
   const type = String(d.event_type||"");
   if (type === "CONTINUE") {
     sheet.getRange(row,8,1,5).setValues([["SHOPPING_SUBMITTED", now, d.selected_items||"", d.selection_order||"", d.elapsed_ms||0]]);
@@ -57,4 +127,8 @@ function upsertParticipant_(sheet, d, now) {
     if (d.survey_response_id) sheet.getRange(row,13).setValue(d.survey_response_id);
     sheet.getRange(row,14).setValue(now);
   }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
