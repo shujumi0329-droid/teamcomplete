@@ -3,7 +3,8 @@
   "rewrites": [
     { "source": "/", "destination": "/shopping-study-vercel/index.html" },
     { "source": "/shopping-study", "destination": "/shopping-study-vercel/index.html" },
-    { "source": "/shopping-study/", "destination": "/shopping-study-vercel/index.html" }
+    { "source": "/shopping-study/", "destination": "/shopping-study-vercel/index.html" },
+    { "source": "/shopping-study/assets/products/:path*", "destination": "https://shujumi0329-droid.github.io/teamcomplete/shopping-study/assets/products/:path*" }
   ],
   "headers": [
     {
