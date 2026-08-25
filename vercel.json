@@ -13,5 +13,17 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/queue-collector.js": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "shopping-events",
+          "retryAfterSeconds": 15,
+          "initialDelaySeconds": 0
+        }
+      ]
+    }
+  }
 }

@@ -1,5 +1,5 @@
 export const COLLECTOR_URL = process.env.SHOPPING_COLLECTOR_URL || 'https://script.google.com/macros/s/AKfycbzha7_C5tjRUYqLYa-DFSqkeRkuCjrhEKzk3khdrlir3SBkgwMtWn9qjqqtrb47Xw/exec';
-export const STUDY_VERSION = 'shopping-v6-vercel-2026-08-25';
+export const STUDY_VERSION = 'shopping-v7-queue-2026-08-25';
 export const MIN_COUNT = 1;
 export const MAX_COUNT = 7;
 

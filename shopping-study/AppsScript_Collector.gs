@@ -2,7 +2,7 @@ const SPREADSHEET_ID = "14v9kmeFBi6a4LKppgzqsfd3EPAXZWUHG2J923fQiIKk";
 const EVENT_SHEET = "Event_Log";
 const PARTICIPANT_SHEET = "Participants";
 const SETUP_SHEET = "Setup";
-const STUDY_VERSION = "shopping-v6-vercel-2026-08-25";
+const STUDY_VERSION = "shopping-v7-queue-2026-08-25";
 
 function doGet(e) {
   const action = String((e && e.parameter && e.parameter.action) || "health");
@@ -46,6 +46,10 @@ function doPost(e) {
     const ps = ss.getSheetByName(PARTICIPANT_SHEET);
     if (!ev || !ps) throw new Error("Event_Log or Participants sheet is missing");
 
+    if (data.event_id && eventExists_(ev, data.event_id)) {
+      return json_({ok:true,duplicate:true});
+    }
+
     const now = new Date();
     ev.appendRow([
       now, data.client_time || "", data.event_id || "", data.join_id || "", data.session_id || "",
@@ -61,6 +65,16 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function eventExists_(sheet, eventId) {
+  const last = sheet.getLastRow();
+  if (last < 2) return false;
+  const found = sheet.getRange(2, 3, last - 1, 1)
+    .createTextFinder(String(eventId))
+    .matchEntireCell(true)
+    .findNext();
+  return !!found;
 }
 
 function handleAdminSetSurvey_(ss, data) {
