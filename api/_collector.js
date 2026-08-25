@@ -1,0 +1,32 @@
+export const COLLECTOR_URL = process.env.SHOPPING_COLLECTOR_URL || 'https://script.google.com/macros/s/AKfycbzha7_C5tjRUYqLYa-DFSqkeRkuCjrhEKzk3khdrlir3SBkgwMtWn9qjqqtrb47Xw/exec';
+export const STUDY_VERSION = 'shopping-v6-vercel-2026-08-25';
+export const MIN_COUNT = 1;
+export const MAX_COUNT = 7;
+
+export async function collectorGet(params = {}) {
+  const url = new URL(COLLECTOR_URL);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, String(value));
+  const res = await fetch(url, { headers: { 'accept': 'application/json' }, redirect: 'follow' });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Collector GET failed (${res.status})`);
+  try { return JSON.parse(text); } catch { throw new Error('Collector returned invalid JSON'); }
+}
+
+export async function collectorPost(payload) {
+  const res = await fetch(COLLECTOR_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'text/plain;charset=utf-8', 'accept': 'application/json' },
+    body: JSON.stringify(payload),
+    redirect: 'follow'
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Collector POST failed (${res.status})`);
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error('Collector returned invalid JSON'); }
+  if (!data || data.ok !== true) throw new Error(data?.error || 'Collector rejected request');
+  return data;
+}
+
+export function json(res, status, body) {
+  res.status(status).setHeader('content-type', 'application/json; charset=utf-8').setHeader('cache-control', 'no-store').json(body);
+}
