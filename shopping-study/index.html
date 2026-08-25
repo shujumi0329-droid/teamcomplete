@@ -1,1 +1,141 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shopping Task</title><style>*{box-sizing:border-box}body{font:14px Arial;margin:0;padding-bottom:78px;color:#111}main,header{max-width:1150px;margin:auto;padding:14px}header{margin-top:14px;background:#f7f8f8;border:1px solid #ddd;border-radius:8px}h1{font-size:22px;margin:0 0 7px}header p{font-size:16px;margin:0}#status{font-weight:bold;margin:14px 0}#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}article{border:1px solid #ddd;border-radius:8px;padding:11px;min-height:330px;display:flex;flex-direction:column}article.sel{outline:3px solid #067d62;background:#f3fbf8}.pic{height:180px;background-size:400% 600%;background-repeat:no-repeat;border-radius:5px}.t{line-height:1.35;min-height:55px;margin:9px 0}.price{font-size:21px;margin:3px 0 10px}button{font:inherit;cursor:pointer}.add{margin-top:auto;border:1px solid #fcd200;background:#ffd814;border-radius:18px;padding:8px}.sel .add{background:white;border-color:#888}.add:disabled{opacity:.45}nav{text-align:center;margin:24px}nav button{margin:3px;padding:7px 12px}footer{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ccc;padding:12px}footer div{max-width:1150px;margin:auto;display:flex;justify-content:space-between;align-items:center}#go{padding:10px 22px;font-weight:bold;background:#f0c14b;border:1px solid #a88734;border-radius:7px}#go:disabled{background:#eee;color:#888}#msg{color:#b12704}@media(max-width:850px){#grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){#grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:390px){#grid{grid-template-columns:1fr}}</style><header><h1>Shopping Task</h1><p>Please select seven products. Your selections will only be submitted after you click <b>Continue</b>.</p></header><main><div id="status">0 / 7 selected</div><div id="msg"></div><section id="grid"></section><nav><button id="b1">1</button><button id="b2">2</button><button id="next">Next &rsaquo;</button></nav></main><form id="f" method="post" hidden><input name="assignmentId" id="aid"><input name="workerId" id="wid"><input name="selected_items" id="items"><input name="selection_order" id="ord"><input name="selection_log" id="log"><input name="time_on_task_ms" id="tm"></form><footer><div><b id="bottom">0 of 7 products selected</b><button id="go" disabled>Continue</button></div></footer><script>const P=[["P01","Keyrose Emotional Support Dumpster Fire Crochet","$6.99"],["P02","Emotional Support Chicken Nuggets","$16.97"],["P03","MAMAGIFTREE Hand-Crocheted Rainbow Affirmation Purse","$9.99"],["P04","2Pcs Mini Night Light - Lonely Robot","$11.75"],["P05","8Pcs Cute Desk Accessories Miniature Resin Figurines","$6.99"],["P06","LAIX The Salaryman Eraser","$9.99"],["P07","Zugar Land Colorful Squeezable Smile Face Guy Phone Holders","$14.99"],["P08","Funny Pickleball Desk Companion","$29.99"],["P09","3D Printed Articulated Banana Decor","$8.99"],["P10","Mushroom Decor Statue","$9.99"],["P11","Handmade Positive Crochet Sunshine","$8.99"],["P12","Tian Zhun Dumpster Fire Zen Garden","$28.99"],["P13","Cute Flower Plush Doll Stuffed Plant Plushie","$21.86"],["P14","6 Pack Sports Ball Buddies","$12.99"],["P15","Whimsical Shaking Figurine Wooden Man","$15.99"],["P16","Chibi Campfire Night Light","$13.99"],["P17","Cute Desktop Trash Can Wastebasket","$12.99"],["P18","Natural Crystal Hedgehog Pet Rock","$22.99"],["P19","Cute Coffee Cup Figurine Holding a Coffee Cup","$15.00"],["P20","VHYHCY Cute Stuffed Boba Plush","$12.99"],["P21","Stelle Cute Softball Plush Keychain","$12.99"],["P22","Emotional Support Lattes","$13.93"],["P23","Linzy 6-inch 2-Pack Plantpals Plush Figure","$12.68"],["P24","WANIDEA Cute Chibi Flame Lamp","$12.99"]];(async()=>{let s='';for(let n of ['sprite.txt','sprite2.txt','sprite3.txt'])s+=(await fetch(n)).text();s='data:image/webp;base64,'+(await s).trim();let q=new URLSearchParams(location.search),a=q.get('assignmentId'),w=q.get('workerId')||'',u=q.get('turkSubmitTo'),preview=a==='ASSIGNMENT_ID_NOT_AVAILABLE',live=a&&u&&!preview,S=new Set,O=[],L=[],pg=1,t0=performance.now(),G=document.getElementById('grid'),st=document.getElementById('status'),go=document.getElementById('go');function upd(){st.textContent=S.size+' / 7 selected';bottom.textContent=S.size+' of 7 products selected';go.disabled=preview||S.size!==7}function draw(){G.innerHTML='';P.slice((pg-1)*12,pg*12).forEach((x,i)=>{let n=(pg-1)*12+i,r=Math.floor(n/4),c=n%4,xx=['0%','33.333%','66.667%','100%'][c],yy=['0%','20%','40%','60%','80%','100%'][r],e=document.createElement('article');e.className=S.has(x[0])?'sel':'';e.innerHTML=`<div class="pic" style="background-image:url(${s});background-position:${xx} ${yy}"></div><div class="t">${x[1]}</div><div class="price">${x[2]}</div>`;let b=document.createElement('button');b.className='add';b.textContent=S.has(x[0])?'Remove from cart':'Add to cart';b.disabled=preview||(!S.has(x[0])&&S.size>=7);b.onclick=()=>{if(S.has(x[0])){S.delete(x[0]);O.splice(O.indexOf(x[0]),1);L.push([x[0],'remove',Date.now()])}else if(S.size<7){S.add(x[0]);O.push(x[0]);L.push([x[0],'add',Date.now()])}draw()};e.appendChild(b);G.appendChild(e)});next.disabled=pg===2;upd()}function page(n){pg=n;draw();scrollTo(0,0)}b1.onclick=()=>page(1);b2.onclick=()=>page(2);next.onclick=()=>page(2);go.onclick=()=>{if(S.size!==7)return;aid.value=a||'';wid.value=w;items.value=O.join(',');ord.value=JSON.stringify(O);log.value=JSON.stringify(L);tm.value=Math.round(performance.now()-t0);if(live){f.action=new URL('/mturk/externalSubmit',u).href;f.submit()}else alert('Test submission: '+O.join(', '))};if(preview){msg.textContent='Please accept the HIT before making selections.'}else if(!live)msg.textContent='Test mode: selections will not be sent to MTurk.';draw()})().catch(()=>document.body.innerHTML='<p style="padding:24px">This study could not load. Please refresh.</p>');</script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shopping Task</title>
+<style>
+*{box-sizing:border-box}body{font:14px Arial,Helvetica,sans-serif;margin:0;padding-bottom:82px;color:#111;background:#fff}main,header{max-width:1150px;margin:auto;padding:14px}header{margin-top:14px;background:#f7f8f8;border:1px solid #d5d9d9;border-radius:8px}h1{font-size:22px;margin:0 0 7px}header p{font-size:16px;line-height:1.45;margin:0}#status{font-weight:700;margin:14px 0 5px}#msg{min-height:20px;color:#b12704;margin-bottom:8px}#grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}article{border:1px solid #ddd;border-radius:8px;padding:11px;min-height:390px;display:flex;flex-direction:column;background:#fff}article.sel{outline:3px solid #067d62;background:#f3fbf8}.pic{width:100%;aspect-ratio:1/1;background-size:400% 600%;background-repeat:no-repeat;background-color:#fff;border-radius:5px}.t{line-height:1.35;min-height:58px;margin:9px 0}.price{font-size:21px;margin:3px 0 10px}button{font:inherit;cursor:pointer}.add{margin-top:auto;border:1px solid #fcd200;background:#ffd814;border-radius:18px;padding:8px}.sel .add{background:white;border-color:#888}.add:disabled{opacity:.45;cursor:not-allowed}nav{text-align:center;margin:24px}nav button{margin:3px;padding:7px 12px}footer{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ccc;padding:12px;z-index:20}footer div{max-width:1150px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}#go{padding:10px 22px;font-weight:bold;background:#f0c14b;border:1px solid #a88734;border-radius:7px}#go:disabled{background:#eee;color:#888;border-color:#ccc;cursor:not-allowed}.loading{padding:35px 0;color:#555}@media(max-width:850px){#grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){#grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:390px){#grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Shopping Task</h1><p>Please select seven products you would like to add to your cart. Your selections will only be submitted after you click <b>Continue</b>.</p></header>
+<main><div id="status">Loading products...</div><div id="msg"></div><section id="grid" class="loading">Loading product images...</section><nav><button id="b1" type="button">1</button><button id="b2" type="button">2</button><button id="next" type="button">Next &rsaquo;</button></nav></main>
+<form id="f" method="post" hidden>
+<input name="assignmentId" id="aid">
+<input name="join_id" id="join">
+<input name="worker_id_copy" id="widcopy">
+<input name="hit_id_copy" id="hidcopy">
+<input name="selected_items" id="items">
+<input name="selection_order" id="ord">
+<input name="selection_log" id="log">
+<input name="time_on_task_ms" id="tm">
+<input name="study_version" value="shopping-v2-2026-08-25">
+</form>
+<footer><div><b id="bottom">0 of 7 products selected</b><button id="go" type="button" disabled>Continue</button></div></footer>
+<script>
+const P=[
+["P01","Keyrose Emotional Support Dumpster Fire Crochet","$6.99"],
+["P02","Emotional Support Chicken Nuggets","$16.97"],
+["P03","MAMAGIFTREE Hand-Crocheted Rainbow Affirmation Purse","$9.99"],
+["P04","2Pcs Mini Night Light - Lonely Robot","$11.75"],
+["P05","8Pcs Cute Desk Accessories Miniature Resin Figurines","$6.99"],
+["P06","LAIX The Salaryman Eraser","$9.99"],
+["P07","Zugar Land Colorful Squeezable Smile Face Guy Phone Holders","$14.99"],
+["P08","Funny Pickleball Desk Companion","$29.99"],
+["P09","3D Printed Articulated Banana Decor","$8.99"],
+["P10","Mushroom Decor Statue","$9.99"],
+["P11","Handmade Positive Crochet Sunshine","$8.99"],
+["P12","Tian Zhun Dumpster Fire Zen Garden","$28.99"],
+["P13","Cute Flower Plush Doll Stuffed Plant Plushie","$21.86"],
+["P14","6 Pack Sports Ball Buddies","$12.99"],
+["P15","Whimsical Shaking Figurine Wooden Man","$15.99"],
+["P16","Chibi Campfire Night Light","$13.99"],
+["P17","Cute Desktop Trash Can Wastebasket","$12.99"],
+["P18","Natural Crystal Hedgehog Pet Rock","$22.99"],
+["P19","Cute Coffee Cup Figurine Holding a Coffee Cup","$15.00"],
+["P20","VHYHCY Cute Stuffed Boba Plush","$12.99"],
+["P21","Stelle Cute Softball Plush Keychain","$12.99"],
+["P22","Emotional Support Lattes","$13.93"],
+["P23","Linzy 6-inch 2-Pack Plantpals Plush Figure","$12.68"],
+["P24","WANIDEA Cute Chibi Flame Lamp","$12.99"]
+];
+(async()=>{
+  const grid=document.getElementById('grid'),status=document.getElementById('status'),msg=document.getElementById('msg'),bottom=document.getElementById('bottom'),go=document.getElementById('go');
+  let raw='';
+  for(const name of ['sprite.txt','sprite2.txt','sprite3.txt']){
+    const response=await fetch(name+'?v=20260825b',{cache:'no-store'});
+    if(!response.ok) throw new Error('Unable to load '+name+' ('+response.status+')');
+    raw += await response.text();
+  }
+  const sprite='data:image/webp;base64,'+raw.replace(/\s+/g,'');
+  await new Promise((resolve,reject)=>{const im=new Image();im.onload=resolve;im.onerror=()=>reject(new Error('Product image data could not be decoded'));im.src=sprite;});
+
+  const q=new URLSearchParams(location.search);
+  const assignmentId=q.get('assignmentId')||'';
+  const workerId=q.get('workerId')||'';
+  const hitId=q.get('hitId')||'';
+  const turkSubmitTo=q.get('turkSubmitTo')||'';
+  const preview=assignmentId==='ASSIGNMENT_ID_NOT_AVAILABLE';
+  const live=!!(assignmentId&&turkSubmitTo&&!preview);
+  const selected=new Set(),order=[],events=[];
+  let page=1;
+  const t0=performance.now();
+
+  function update(){
+    status.textContent=selected.size+' / 7 selected';
+    bottom.textContent=selected.size+' of 7 products selected';
+    go.disabled=preview||selected.size!==7;
+  }
+  function draw(){
+    grid.className=''; grid.innerHTML='';
+    P.slice((page-1)*12,page*12).forEach((x,i)=>{
+      const n=(page-1)*12+i,r=Math.floor(n/4),c=n%4;
+      const xx=['0%','33.333%','66.667%','100%'][c];
+      const yy=['0%','20%','40%','60%','80%','100%'][r];
+      const card=document.createElement('article');
+      card.className=selected.has(x[0])?'sel':'';
+      card.innerHTML=`<div class="pic" style="background-image:url('${sprite}');background-position:${xx} ${yy}"></div><div class="t">${x[1]}</div><div class="price">${x[2]}</div>`;
+      const b=document.createElement('button');
+      b.type='button'; b.className='add';
+      b.textContent=selected.has(x[0])?'Remove from cart':'Add to cart';
+      b.disabled=preview||(!selected.has(x[0])&&selected.size>=7);
+      b.onclick=()=>{
+        if(selected.has(x[0])){selected.delete(x[0]);const k=order.indexOf(x[0]);if(k>=0)order.splice(k,1);events.push({item:x[0],action:'remove',t_ms:Math.round(performance.now()-t0)});}
+        else if(selected.size<7){selected.add(x[0]);order.push(x[0]);events.push({item:x[0],action:'add',t_ms:Math.round(performance.now()-t0)});}
+        draw();
+      };
+      card.appendChild(b); grid.appendChild(card);
+    });
+    document.getElementById('b1').disabled=page===1;
+    document.getElementById('b2').disabled=page===2;
+    document.getElementById('next').disabled=page===2;
+    update();
+  }
+  function setPage(n){page=n;draw();scrollTo({top:0,behavior:'instant'});}
+  document.getElementById('b1').onclick=()=>setPage(1);
+  document.getElementById('b2').onclick=()=>setPage(2);
+  document.getElementById('next').onclick=()=>setPage(2);
+  go.onclick=()=>{
+    if(selected.size!==7)return;
+    const elapsed=Math.round(performance.now()-t0);
+    const payload={study_version:'shopping-v2-2026-08-25',assignmentId,workerId,hitId,join_id:assignmentId,selected_items:[...order],selection_order:[...order],selection_log:events,time_on_task_ms:elapsed,submitted_at:new Date().toISOString()};
+    try{localStorage.setItem('shopping_'+(assignmentId||'test'),JSON.stringify(payload));}catch(e){}
+    document.getElementById('aid').value=assignmentId;
+    document.getElementById('join').value=assignmentId;
+    document.getElementById('widcopy').value=workerId;
+    document.getElementById('hidcopy').value=hitId;
+    document.getElementById('items').value=order.join(',');
+    document.getElementById('ord').value=JSON.stringify(order);
+    document.getElementById('log').value=JSON.stringify(events);
+    document.getElementById('tm').value=elapsed;
+    if(live){
+      const form=document.getElementById('f');
+      form.action=new URL('/mturk/externalSubmit',turkSubmitTo).href;
+      form.submit();
+    }else{
+      alert('Test submission: '+order.join(', ')+'\n\njoin_id: '+(assignmentId||'(test mode)'));
+    }
+  };
+  if(preview)msg.textContent='Please accept the HIT before making selections.';
+  else if(!live)msg.textContent='Test mode: selections will not be sent to MTurk.';
+  draw();
+})().catch(err=>{
+  console.error(err);
+  document.getElementById('status').textContent='The shopping task could not load.';
+  document.getElementById('msg').textContent='Product images failed to load. Please refresh the page.';
+  document.getElementById('grid').innerHTML='';
+});
+</script>
+</body>
+</html>
