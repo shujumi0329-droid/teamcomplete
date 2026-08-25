@@ -3,7 +3,7 @@ const EVENT_SHEET = "Event_Log";
 const PARTICIPANT_SHEET = "Participants";
 const SETUP_SHEET = "Setup";
 const ADMIN_PASSWORD = "nsysu0825";
-const STUDY_VERSION = "shopping-v4-2026-08-25";
+const STUDY_VERSION = "shopping-v5-2026-08-25";
 
 function doGet(e) {
   const action = String((e && e.parameter && e.parameter.action) || "health");
@@ -16,7 +16,8 @@ function doGet(e) {
       ok: true,
       survey_url: getSetting_(ss, "survey_url") || "",
       study_version: STUDY_VERSION,
-      required_count: 7
+      min_count: 1,
+      max_count: 7
     };
   } else {
     out = {ok:true, service:"shopping-study-collector", study_version:STUDY_VERSION};
@@ -52,7 +53,7 @@ function doPost(e) {
       data.assignment_id || "", data.worker_id || "", data.hit_id || "", data.event_type || "",
       data.product_id || "", data.page || "", data.selected_count || 0, data.selected_items || "",
       data.selection_order || "", data.elapsed_ms || 0, data.study_version || "", data.user_agent || "",
-      data.referrer || "", data.extra_json || ""
+      data.referrer || "", data.extra_json || "", Number(data.selected_total_usd || 0)
     ]);
     upsertParticipant_(ps, data, now);
     return json_({ok:true});
@@ -111,9 +112,9 @@ function upsertParticipant_(sheet, d, now) {
   }
   if (!row) {
     row = Math.max(2,last+1);
-    sheet.getRange(row,1,1,17).setValues([[
+    sheet.getRange(row,1,1,19).setValues([[
       d.join_id||"", d.assignment_id||"", d.worker_id||"", d.hit_id||"", d.session_id||"", now, now,
-      "OPENED", "", "", "", "", "", "", d.study_version||"", "", ""
+      "OPENED", "", "", "", "", "", "", d.study_version||"", "", "", "", ""
     ]]);
   } else {
     sheet.getRange(row,7).setValue(now);
@@ -122,6 +123,7 @@ function upsertParticipant_(sheet, d, now) {
   const type = String(d.event_type||"");
   if (type === "CONTINUE") {
     sheet.getRange(row,8,1,5).setValues([["SHOPPING_SUBMITTED", now, d.selected_items||"", d.selection_order||"", d.elapsed_ms||0]]);
+    sheet.getRange(row,18,1,2).setValues([[Number(d.selected_count||0), Number(d.selected_total_usd||0)]]);
   } else if (type === "SURVEY_COMPLETE") {
     sheet.getRange(row,8).setValue("SURVEY_COMPLETED");
     if (d.survey_response_id) sheet.getRange(row,13).setValue(d.survey_response_id);
