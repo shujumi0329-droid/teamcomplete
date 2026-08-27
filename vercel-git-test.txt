@@ -1,2 +1,0 @@
-Vercel Git integration verification trigger.
-2026-08-27T11:08+08:00
